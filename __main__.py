@@ -26,11 +26,11 @@ role_policy_attachment = aws.iam.RolePolicyAttachment("lambdaRoleAttachment",
 # Create the lambda to execute
 lambda_function = aws.lambda_.Function("lambdaFunction", 
     code=pulumi.AssetArchive({
-        ".": pulumi.FileArchive("./app"),
+        ".": pulumi.FileArchive("./handler"),
     }),
-    runtime="nodejs12.x",
+    runtime=aws.lambda_.Runtime.PYTHON3D8,
     role=lambda_role.arn,
-    handler="index.handler")
+    handler="handler.handler")
 
 # Give API Gateway permissions to invoke the Lambda
 lambda_permission = aws.lambda_.Permission("lambdaPermission", 
