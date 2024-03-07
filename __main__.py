@@ -85,7 +85,6 @@ lambda_permission = aws.lambda_.Permission("lambdaPermission",
 # Set up the API Gateway
 apigw = aws.apigatewayv2.Api("httpApiGateway", 
     protocol_type="HTTP",
-    route_key="GET /",
     target=lambda_function.invoke_arn)
 
 # Export the API endpoint for easy access
