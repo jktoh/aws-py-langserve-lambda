@@ -66,7 +66,7 @@ role_policy_attachment = aws.iam.RolePolicyAttachment("lambdaRoleAttachment",
 lambda_function = aws.lambda_.Function("lambdaFunction", 
     image_uri=langserve_ecr_image.repo_digest,
     role=lambda_role.arn,
-    handler="handler.handler")
+    handler="server.handler")
 
 # Give API Gateway permissions to invoke the Lambda
 lambda_permission = aws.lambda_.Permission("lambdaPermission", 
