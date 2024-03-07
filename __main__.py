@@ -1,8 +1,47 @@
-# Copyright 2016-2021, Pulumi Corporation. All rights reserved
+# Copyright 2016-2024, Pulumi Corporation.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 import pulumi
 import json
 import pulumi_aws as aws
+import pulumi_docker as docker
+
+config = pulumi.Config()
+container_context = config.get("container-context")
+if container_context is None:
+    container_context = "."
+container_file = config.get("container-file")
+if container_file is None:
+    container_file = "./Dockerfile"
+pulumi_project = pulumi.get_project()
+pulumi_stack = pulumi.get_stack()
+langserve_ecr_repository = aws.ecr.Repository("langserve-ecr-repository",
+    name=f"{pulumi_project}-{pulumi_stack}",
+    force_delete=True)
+token = aws.ecr.get_authorization_token_output(registry_id=langserve_ecr_repository.registry_id)
+langserve_ecr_image = docker.Image("langserve-ecr-image",
+    build=docker.DockerBuildArgs(
+        platform="linux/amd64",
+        context=container_context,
+        dockerfile=container_file,
+    ),
+    image_name=langserve_ecr_repository.repository_url,
+    registry=docker.RegistryArgs(
+        server=langserve_ecr_repository.repository_url,
+        username=token.user_name,
+        password=pulumi.Output.secret(token.password),
+    ))
 
 # Create the role for the Lambda to assume
 lambda_role = aws.iam.Role("lambdaRole", 
@@ -25,10 +64,7 @@ role_policy_attachment = aws.iam.RolePolicyAttachment("lambdaRoleAttachment",
 
 # Create the lambda to execute
 lambda_function = aws.lambda_.Function("lambdaFunction", 
-    code=pulumi.AssetArchive({
-        ".": pulumi.FileArchive("./handler"),
-    }),
-    runtime=aws.lambda_.Runtime.PYTHON3D8,
+    image_uri=langserve_ecr_image.repo_digest,
     role=lambda_role.arn,
     handler="handler.handler")
 

@@ -1,82 +1,89 @@
-[![Deploy](../.buttons/deploy-with-pulumi-dark.svg)](https://app.pulumi.com/new?template=https://github.com/pulumi/examples/blob/master/aws-py-apigatewayv2-http-api-quickcreate/README.md#gh-light-mode-only)
-[![Deploy](../.buttons/deploy-with-pulumi-light.svg)](https://app.pulumi.com/new?template=https://github.com/pulumi/examples/blob/master/aws-py-apigatewayv2-http-api-quickcreate/README.md#gh-dark-mode-only)
+# AWS Python LangServe Example
 
-# AWS API Gateway V2 HTTP API Quickstart
+## Installation
 
-Set up a simple HTTP API using AWS API Gateway V2. The API executes a simple Lambda function
-found in `/app/index.js`.
+Install the LangChain CLI if you haven't yet
 
-## Prerequisites
-1.  Install [Pulumi](https://www.pulumi.com/docs/get-started/install/).
-2.  Configure [Pulumi for AWS](https://www.pulumi.com/docs/intro/cloud-providers/aws/setup/).
-3.  Install [Python](https://www.pulumi.com/docs/intro/languages/python).
+```bash
+pip install -U langchain-cli
+```
 
-## Deploying and running the program
+## Adding packages
 
-Note: some values in this example will be different from run to run.  These values are indicated
-with `***`.
+```bash
+# adding packages from 
+# https://github.com/langchain-ai/langchain/tree/master/templates
+langchain app add $PROJECT_NAME
 
-1.  Create a new stack:
+# adding custom GitHub repo packages
+langchain app add --repo $OWNER/$REPO
+# or with whole git string (supports other git providers):
+# langchain app add git+https://github.com/hwchase17/chain-of-verification
 
-    ```bash
-    $ pulumi stack init http-api
-    ```
+# with a custom api mount point (defaults to `/{package_name}`)
+langchain app add $PROJECT_NAME --api_path=/my/custom/path/rag
+```
 
-1.  Set the AWS region:
+Note: you remove packages by their api path
 
-    ```
-    $ pulumi config set aws:region us-east-2
-    ```
+```bash
+langchain app remove my/custom/path/rag
+```
 
-1.  Run `pulumi up` to preview and deploy changes:
+## Setup LangSmith (Optional)
+LangSmith will help us trace, monitor and debug LangChain applications. 
+LangSmith is currently in private beta, you can sign up [here](https://smith.langchain.com/). 
+If you don't have access, you can skip this section
 
-    ```
-    $ pulumi up
-    Previewing update (http-api)
-    ...
 
-    Updating (http-api)
+```shell
+export LANGCHAIN_TRACING_V2=true
+export LANGCHAIN_API_KEY=<your-api-key>
+export LANGCHAIN_PROJECT=<your-project>  # if not specified, defaults to "default"
+```
 
-        Type                             Name                                     Status
-    +   pulumi:pulumi:Stack              aws-py-apigatewayv2-quickstart-http-api  created
-    +   ├─ aws:iam:Role                  lambdaRole                               created
-    +   ├─ aws:lambda:Function           lambdaFunction                           created
-    +   ├─ aws:iam:RolePolicyAttachment  lambdaRoleAttachment                     created
-    +   ├─ aws:apigatewayv2:Api          httpApiGateway                           created
-    +   └─ aws:lambda:Permission         lambdapermission                         created
+## Launch LangServe
 
-    Outputs:
-        endpoint: "https://***.execute-api.us-east-2.amazonaws.com"
+```bash
+langchain serve
+```
 
-    Resources:
-        + 6 created
+## Deploying to AWS
 
-    Duration: 22s
-    ```
-    Note: this command will create a virtual environment and restore dependencies automatically as
-    described in [Pulumi docs](https://www.pulumi.com/docs/intro/languages/python/#virtual-environments).
+Run the following command to deploy your LangServe app to AWS:
 
-1.  View the endpoint URL and curl a few routes:
+```bash
+pulumi up
+```
 
-    ```bash
-    $ pulumi stack output
-    Current stack outputs (1):
-        OUTPUT            VALUE
-        endpoint          https://***.execute-api.us-east-2.amazonaws.com
+This will output the URL of your LangServe app. You can use this URL to make requests to your app.
 
-    $ curl $(pulumi stack output endpoint)
-    Hello, Pulumi!
-    ```
+## Running in Docker
 
-1.  To view the runtime logs of the Lambda function, use the `pulumi logs` command. To get a log stream, use `pulumi logs --follow`.
+This project folder includes a Dockerfile that allows you to easily build and host your LangServe app.
 
-1.  At this point, you have a running HTTP API. Feel free to modify your program, and run `pulumi up`
-to redeploy changes. The Pulumi CLI automatically detects what has changed and makes the minimal
-edits necessary to accomplish these changes. This could be altering the function used by the Lambda,
-or anything else you'd like!
+### Building the Image
 
-## Clean up
+To build the image, you simply:
 
-1.  Run `pulumi destroy` to tear down all resources.
+```shell
+docker build . -t my-langserve-app
+```
 
-1.  To delete the stack itself, run `pulumi stack rm`. Note that this command deletes all deployment history from the Pulumi console.
+If you tag your image with something other than `my-langserve-app`,
+note it for use in the next step.
+
+### Running the Image Locally
+
+To run the image, you'll need to include any environment variables
+necessary for your application.
+
+In the below example, we inject the `OPENAI_API_KEY` environment
+variable with the value set in my local environment
+(`$OPENAI_API_KEY`)
+
+We also expose port 8080 with the `-p 8080:8080` option.
+
+```shell
+docker run -e OPENAI_API_KEY=$OPENAI_API_KEY -p 8080:8080 my-langserve-app
+```
