@@ -24,6 +24,9 @@ if container_context is None:
 container_file = config.get("container-file")
 if container_file is None:
     container_file = "./Dockerfile"
+open_api_key = config.get("open-api-key")
+if open_api_key is None:
+    open_api_key = "CHANGEME"
 pulumi_project = pulumi.get_project()
 pulumi_stack = pulumi.get_stack()
 langserve_ecr_repository = aws.ecr.Repository("langserve-ecr-repository",
@@ -65,8 +68,13 @@ role_policy_attachment = aws.iam.RolePolicyAttachment("lambdaRoleAttachment",
 # Create the lambda to execute
 lambda_function = aws.lambda_.Function("lambdaFunction", 
     image_uri=langserve_ecr_image.repo_digest,
+    package_type="Image",
     role=lambda_role.arn,
-    handler="server.handler")
+    environment={
+        "variables": {
+            'OPENAI_API_KEY': open_api_key,
+        }
+    })
 
 # Give API Gateway permissions to invoke the Lambda
 lambda_permission = aws.lambda_.Permission("lambdaPermission", 

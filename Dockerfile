@@ -1,4 +1,4 @@
-FROM public.ecr.aws/lambda/python:3.111
+FROM public.ecr.aws/lambda/python:3.11
 
 RUN pip install poetry==1.6.1
 
@@ -16,4 +16,4 @@ COPY ./app ./app
 
 RUN poetry install --no-interaction --no-ansi
 
-CMD [ "main.handler" ]
+CMD [ "app.server.handler" ]

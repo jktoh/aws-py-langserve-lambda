@@ -21,4 +21,10 @@ add_routes(
     path="/openai",
 )
 
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run(app, host="0.0.0.0", port=8000)
+
+
 handler = Mangum(app)
