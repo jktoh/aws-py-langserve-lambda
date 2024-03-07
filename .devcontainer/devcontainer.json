@@ -17,7 +17,7 @@
 	// "forwardPorts": [],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "pip3 install --user -r requirements.txt && pulumi login && pulumi config set open-api-key --secret $OPENAI_API_KEY -s aws-py-langserve"
+	"postCreateCommand": "poetry install  --no-interaction --no-ansi --no-root && pip3 install --user -r requirements.txt && pulumi login && pulumi config set open-api-key --secret $OPENAI_API_KEY -s aws-py-langserve"
 
 	// Configure tool-specific properties.
 	// "customizations": {},
