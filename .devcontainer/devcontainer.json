@@ -8,7 +8,7 @@
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	"features": {
 		"ghcr.io/devcontainers/features/aws-cli": {},
-		"ghcr.io/devcontainers/features/docker-in-docker:2.9": {},
+		"ghcr.io/devcontainers/features/docker-in-docker:2.10": {},
 		"ghcr.io/devcontainers-contrib/features/poetry": {},
 		"ghcr.io/devcontainers-contrib/features/pulumi": {}
 	},
